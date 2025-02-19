@@ -34,7 +34,7 @@ make app-$(ACC)-LWC-ASCON-$(VERSION) SCHEME=LWC ALG=ASCON VERSION=$(VERSION)$ AC
 make run-$(ACC)-LWC-ASCON-$(VERSION) SCHEME=LWC ALG=ASCON VERSION=$(VERSION)$ ACC=$(ACC)
 ```
 
-With $(ACC) = original, optimized, and $(VERSION) = asconhashav12, asconhashv12, asconxofav12, asconxofv12, ascon128av12, ascon128v12, ascon80pqv12.
+With (ACC) = original, optimized, and (VERSION) = asconhashav12, asconhashv12, asconxofav12, asconxofv12, ascon128av12, ascon128v12, ascon80pqv12.
 
 
 ## All apps-available
