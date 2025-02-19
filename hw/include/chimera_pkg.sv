@@ -1,74 +1,46 @@
 package chimera_pkg;
 
+localparam KYBER      = 0;        // KYBER Algorithm
+localparam DILITHIUM  = 0;        // DILITHIUM Algorithm
+localparam HQC        = 0;        // HQC Algorithm
+localparam FALCON     = 0;        // FALCON Algorithm
+localparam SPHINCS    = 0;        // SPHINCS+ Algorithm 
+localparam ASCON      = 1;        // ASCON Algorithm 
+
+// Opcode of the new instruction
+typedef enum logic [6:0] {
+  nada         = 7'b0000000,
+  montg_k      = 7'b0000001,
+  montg_d      = 7'b0000010,
+  barrett      = 7'b0000011,
+  rol32_a      = 7'b0000100,
+  rol32_2      = 7'b0000101,
+  rol32_b      = 7'b0000110,
+  rol32_c      = 7'b0000111,
+  rol32_d      = 7'b0001000,
+  rol32_e      = 7'b0001001
+} chimera_insn;
+
+
 // funct3 for chimera_R intruction
 typedef enum logic [2:0] {
-  OP_R_R1 = 3'b001, //1  - GF
+  OP_R_R0 = 3'b000, //0
+  OP_R_R1 = 3'b001, //1 
   OP_R_R2 = 3'b010, //2
   OP_R_R3 = 3'b011, //3
   OP_R_R4 = 3'b100, //4
   OP_R_R5 = 3'b101, //5
   OP_R_R6 = 3'b110, //6
-  OP_R_R7  = 3'b111  //7
+  OP_R_R7 = 3'b111  //7
 } chimera_r_op;
 
-// funct3 for chimera_R4 intruction
-typedef enum logic [2:0] {
-  OP_R4_R1 = 3'b001, //1
-  OP_R4_R2 = 3'b010, //2
-  OP_R4_R3 = 3'b011, //3
-  OP_R4_R4 = 3'b100, //4
-  OP_R4_R5 = 3'b101, //5
-  OP_R4_R6 = 3'b110, //6
-  OP_R4_R7 = 3'b111  //7
+// funct2 for chimera_R4 intruction
+typedef enum logic [1:0] {
+  OP_R4_R0 = 2'b00, //1
+  OP_R4_R1 = 2'b01, //1
+  OP_R4_R2 = 2'b10, //2
+  OP_R4_R3 = 2'b11 //3
 } chimera_r4_op;
-
-// funct3 for chimera_I intruction
-typedef enum logic [2:0] {
-  OP_I_R1   = 3'b001,
-  OP_I_R2   = 3'b010,
-  OP_I_R3   = 3'b011,
-  OP_I_R4   = 3'b100,
-  OP_I_R5   = 3'b101,
-  OP_I_R6   = 3'b110,
-  OP_I_R7   = 3'b111
-} chimera_i_op;
-
-// New instruction definition
-typedef union packed {
-  struct packed {
-    logic [6:0] funct7;  // 31:25
-    logic [4:0] rs2;     // 24:20
-    logic [4:0] rs1;     // 19:15
-    chimera_r_op funct3;  // 14:12
-    logic [4:0] rd;      // 11:7
-    logic [6:0] opcode;  // 6:0
-  } as_chimera_R;
-  struct packed {
-    logic [4:0] rs3;  // 31:27
-    logic [1:0] funct2;  // 26:25
-    logic [4:0] rs2;     // 24:20
-    logic [4:0] rs1;     // 19:15
-    chimera_r4_op funct3;  // 14:12
-    logic [4:0] rd;      // 11:7
-    logic [6:0] opcode;  // 6:0
-  } as_chimera_R4;
-  struct packed {
-    logic [11:0] immediate;
-    logic [4:0]  rs1;
-    chimera_i_op  funct3;
-    logic [4:0]  rd;
-    logic [6:0]  opcode;
-  } as_chimera_I;
-  logic [31:0] raw;
-} instruction_u;
-
-// Opcode of the new instruction
-typedef enum logic [6:0] {
-  chimera_I  = 7'b0001011,
-  chimera_R  = 7'b0111011, //3b
-  chimera_R4 = 7'b1001011  //4b
-} chimera_op;
-
 
 // Mode of operation of chimera
 typedef enum logic [6:0] {
@@ -114,13 +86,45 @@ typedef enum logic [6:0] {
   FUNCT7_39        = 7'b0100111 //39
 } chimera_funct7;
 
-// Mode of operation of chimera
-typedef enum logic [1:0] {
-  FUNCT2_0         = 2'b00, //0
-  FUNCT2_1         = 2'b01, //1
-  FUNCT2_2         = 2'b10, //2
-  FUNCT2_3         = 2'b11 //3
-} chimera_funct2;
+// funct3 for chimera_I intruction
+typedef enum logic [2:0] {
+  FUNCT3_1   = 3'b001,
+  FUNCT3_2   = 3'b010,
+  FUNCT3_3   = 3'b011,
+  FUNCT3_4   = 3'b100,
+  FUNCT3_5   = 3'b101,
+  FUNCT3_6   = 3'b110,
+  FUNCT3_7   = 3'b111
+} chimera_funct3;
+
+// New instruction definition
+typedef union packed {
+  struct packed {
+    chimera_funct7 funct7;  // 31:25
+    logic [4:0] rs2;     // 24:20
+    logic [4:0] rs1;     // 19:15
+    chimera_r_op funct3;  // 14:12
+    logic [4:0] rd;      // 11:7
+    logic [6:0] opcode;  // 6:0
+  } as_chimera_R;
+  struct packed {
+    logic [4:0] rs3;  // 31:27
+    chimera_r4_op funct2;  // 26:25
+    logic [4:0] rs2;     // 24:20
+    logic [4:0] rs1;     // 19:15
+    chimera_funct3 funct3;  // 14:12
+    logic [4:0] rd;      // 11:7
+    logic [6:0] opcode;  // 6:0
+  } as_chimera_R4;
+  logic [31:0] raw;
+} instruction_u;
+
+// Opcode of the new instruction
+typedef enum logic [6:0] {
+  chimera_R  = 7'b0111011, //3b
+  chimera_R4  = 7'b1101011 //6b
+} chimera_op;
+
 
 
 // State of the FSM of the controller
@@ -128,7 +132,7 @@ typedef enum logic [2:0] {
   RESET_S,
   WAIT_S,
   LOAD_S,
-  ASCON_S, 
+  KECCAK_S, 
   PROCESS_S,
   COMPUTE_S,
   STORE_S, 

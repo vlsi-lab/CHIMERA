@@ -24,82 +24,94 @@ module chimera_top
 );
 
 
-chimera_pkg::mode_t mode_ascon_xif_i;
-chimera_pkg::in_t in_xif_o;
-chimera_pkg::out_t res_register;
-chimera_pkg::funct7_t funct7_ascon_xif_i;
-chimera_pkg::funct2_t funct2_ascon_xif_i;
-chimera_pkg::immediate_t immediate_ascon_xif_i;
-logic [1:0] insr_ascon_xif_i;
-logic ascon_done_o, ascon_store_i;
+chimera_pkg::in_t rs_values;
+chimera_pkg::out_t rd_values;
+//result_to_commit;
+chimera_pkg::chimera_insn select_insn;
+logic [4:0] rd_idex, rd_excom;
+logic [3:0] id_idex, id_excom;
+logic [1:0] select_op;
+logic save_rd;
+logic done;
+logic continued;
+logic result_reg_en;
 
+//not used
+//*****COMPRESSED INTERFACE*********************************************
+assign xif_compressed_if.compressed_ready = '0;
+assign xif_compressed_if.compressed_resp = '0;
+//*****MEMORY INTERFACE**************************************************
+assign xif_mem_if.mem_valid = '0;
+assign xif_mem_if.mem_req = '0;
+
+
+
+
+id_stage id_stage_i (
+  .clk_i,
+  .rst_ni,
+
+  .xif_issue_if(xif_issue_if),
+
+  .rs_values_o(rs_values),
+  .rd_o(rd_idex),
+  .id_o(id_idex),
+  .select_insn_o(select_insn), 
+  .save_rd_o(save_rd),
+
+  .done_o(done),
+  .continued_o(continued),
+  .result_reg_en_o(result_reg_en),
+
+  .select_op_o(select_op)
+);
 
 chimera i_chimera (
     .clk_i (clk_i),
     .rst_ni(rst_ni),
-
-    .x_issue_req_i(xif_issue_if.issue_req),
-
-    .mode_i(mode_ascon_xif_i),
-    .funct7_i(funct7_ascon_xif_i),
-    .funct2_i(funct2_ascon_xif_i),
-    .immediate_i(immediate_ascon_xif_i),
-    .in_i(in_xif_o),
-    .insr_i(insr_ascon_xif_i),
-    .ascon_i(ascon_i),
-    .ascon_done_o(ascon_done_o),
-    .ascon_store_i(ascon_store_i),
-
-    .out_o (res_register)
+    
+    .rs_values_i(rs_values),
+    .insn_i(select_insn),
+    .result_reg_en_i(result_reg_en),
+    .rd_values_o(rd_values)
 );
 
-xif_controller i_xif_controller (
-    .clk_i (clk_i),
-    .rst_ni(rst_ni),
 
-    // Compressed Interface
-    .x_compressed_valid_i(xif_compressed_if.compressed_valid),
-    .x_compressed_ready_o(xif_compressed_if.compressed_ready),
-    .x_compressed_req_i  (xif_compressed_if.compressed_req),
-    .x_compressed_resp_o (xif_compressed_if.compressed_resp),
+generate
+  always @(posedge clk_i or negedge rst_ni) begin
+    if (~rst_ni) begin
+      rd_excom <= '0;
+      id_excom <= '0;
+    end else begin
+      if (save_rd) begin
+        rd_excom <= rd_idex;
+        id_excom <= id_idex;
+      end else begin
+        rd_excom <= rd_excom;
+        id_excom <= id_excom;
+      end
+    end
+  end
+endgenerate
 
-    // Issue Interface
-    .x_issue_valid_i(xif_issue_if.issue_valid),
-    .x_issue_ready_o(xif_issue_if.issue_ready),
-    .x_issue_req_i  (xif_issue_if.issue_req),
-    .x_issue_resp_o (xif_issue_if.issue_resp),
+//assign result_to_commit.rd1 = rd_values.rd1;
+//assign result_to_commit.rd2 = rd_values.rd2;
 
-    // Commit Interface
-    .x_commit_valid_i(xif_commit_if.commit_valid),
-    .x_commit_i(xif_commit_if.commit),
 
-    // Memory Request/Response Interface
-    .x_mem_valid_o(xif_mem_if.mem_valid),
-    .x_mem_ready_i(xif_mem_if.mem_ready),
-    .x_mem_req_o  (xif_mem_if.mem_req),
-    .x_mem_resp_i (xif_mem_if.mem_resp),
+commit_stage commit_stage_i (
+  .clk_i,
+  .rst_ni,
 
-    // Memory Result Interface
-    .x_mem_result_valid_i(xif_mem_result_if.mem_result_valid),
-    .x_mem_result_i(xif_mem_result_if.mem_result),
+  .select_op_i(select_op),
 
-    // Result Interface
-    .x_result_valid_o(xif_result_if.result_valid),
-    .x_result_ready_i(xif_result_if.result_ready),
-    .x_result_o(xif_result_if.result),
+  .rd_i(rd_excom),
+  .id_i(id_excom),
+  .result_i(rd_values),
+  .insn_i(select_insn),
+  .done_i(done),
+  .continued_i(continued),
 
-    .mode_o(mode_ascon_xif_i), 
-    .in_o(in_xif_o),
-    .funct7_o(funct7_ascon_xif_i),
-    .funct2_o(funct2_ascon_xif_i),
-    .immediate_o(immediate_ascon_xif_i),
-    .insr_o(insr_ascon_xif_i),
-    .res_register_i(res_register),
-
-    .ascon_start_o(ascon_i),
-    .ascon_store_o(ascon_store_i),
-    .ascon_done_i(ascon_done_o)
+  .xif_result_if(xif_result_if)
 );
-
 
 endmodule

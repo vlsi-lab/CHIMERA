@@ -40,17 +40,17 @@ int main() {
     #endif
     
     // Print the hash output
-    //printf("Hash output is:\n");
-    //for (int i = 0; i < CRYPTO_BYTES; i++) {
-    //    printf("%02x", hash_output[i]);
-    //}
-    //printf("\n");
+   // printf("Hash output is:\n");
+   // for (int i = 0; i < CRYPTO_BYTES; i++) {
+   //     printf("%02x", hash_output[i]);
+   // }
+   // printf("\n");
 //
-    //printf("Golden model is:\n");
-    //for (int i = 0; i < CRYPTO_BYTES; i++) {
-    //    printf("%02x", golden_result[i]);
-    //}
-    //printf("\n");
+   // printf("Golden model is:\n");
+   // for (int i = 0; i < CRYPTO_BYTES; i++) {
+   //     printf("%02x", golden_result[i]);
+   // }
+   // printf("\n");
     
     // Compare with the golden result
     if (memcmp(hash_output, golden_result, CRYPTO_BYTES) == 0) {

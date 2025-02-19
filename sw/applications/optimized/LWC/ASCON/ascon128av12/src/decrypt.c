@@ -25,38 +25,38 @@ int crypto_aead_decrypt(unsigned char* m, unsigned long long* mlen,
 
   /* initialize */
   state_t s;
-  s.x[0] = ASCON_128A_IV;
-  s.x[1] = K0;
-  s.x[2] = K1;
-  s.x[3] = N0;
-  s.x[4] = N1;
+  s.x0 = ASCON_128A_IV;
+  s.x1 = K0;
+  s.x2 = K1;
+  s.x3 = N0;
+  s.x4 = N1;
   P12(&s);
-  s.x[3] ^= K0;
-  s.x[4] ^= K1;
+  s.x3 ^= K0;
+  s.x4 ^= K1;
   printstate("initialization", &s);
 
   if (adlen) {
     /* full associated data blocks */
     while (adlen >= ASCON_128A_RATE) {
-      s.x[0] ^= LOADBYTES(ad, 8);
-      s.x[1] ^= LOADBYTES(ad + 8, 8);
+      s.x0 ^= LOADBYTES(ad, 8);
+      s.x1 ^= LOADBYTES(ad + 8, 8);
       P8(&s);
       ad += ASCON_128A_RATE;
       adlen -= ASCON_128A_RATE;
     }
     /* final associated data block */
     if (adlen >= 8) {
-      s.x[0] ^= LOADBYTES(ad, 8);
-      s.x[1] ^= LOADBYTES(ad + 8, adlen - 8);
-      s.x[1] ^= PAD(adlen - 8);
+      s.x0 ^= LOADBYTES(ad, 8);
+      s.x1 ^= LOADBYTES(ad + 8, adlen - 8);
+      s.x1 ^= PAD(adlen - 8);
     } else {
-      s.x[0] ^= LOADBYTES(ad, adlen);
-      s.x[0] ^= PAD(adlen);
+      s.x0 ^= LOADBYTES(ad, adlen);
+      s.x0 ^= PAD(adlen);
     }
     P8(&s);
   }
   /* domain separation */
-  s.x[4] ^= 1;
+  s.x4 ^= 1;
   printstate("process associated data", &s);
 
   /* full ciphertext blocks */
@@ -64,10 +64,10 @@ int crypto_aead_decrypt(unsigned char* m, unsigned long long* mlen,
   while (clen >= ASCON_128A_RATE) {
     uint64_t c0 = LOADBYTES(c, 8);
     uint64_t c1 = LOADBYTES(c + 8, 8);
-    STOREBYTES(m, s.x[0] ^ c0, 8);
-    STOREBYTES(m + 8, s.x[1] ^ c1, 8);
-    s.x[0] = c0;
-    s.x[1] = c1;
+    STOREBYTES(m, s.x0 ^ c0, 8);
+    STOREBYTES(m + 8, s.x1 ^ c1, 8);
+    s.x0 = c0;
+    s.x1 = c1;
     P8(&s);
     m += ASCON_128A_RATE;
     c += ASCON_128A_RATE;
@@ -77,34 +77,34 @@ int crypto_aead_decrypt(unsigned char* m, unsigned long long* mlen,
   if (clen >= 8) {
     uint64_t c0 = LOADBYTES(c, 8);
     uint64_t c1 = LOADBYTES(c + 8, clen - 8);
-    STOREBYTES(m, s.x[0] ^ c0, 8);
-    STOREBYTES(m + 8, s.x[1] ^ c1, clen - 8);
-    s.x[0] = c0;
-    s.x[1] = CLEARBYTES(s.x[1], clen - 8);
-    s.x[1] |= c1;
-    s.x[1] ^= PAD(clen - 8);
+    STOREBYTES(m, s.x0 ^ c0, 8);
+    STOREBYTES(m + 8, s.x1 ^ c1, clen - 8);
+    s.x0 = c0;
+    s.x1 = CLEARBYTES(s.x1, clen - 8);
+    s.x1 |= c1;
+    s.x1 ^= PAD(clen - 8);
   } else {
     uint64_t c0 = LOADBYTES(c, clen);
-    STOREBYTES(m, s.x[0] ^ c0, clen);
-    s.x[0] = CLEARBYTES(s.x[0], clen);
-    s.x[0] |= c0;
-    s.x[0] ^= PAD(clen);
+    STOREBYTES(m, s.x0 ^ c0, clen);
+    s.x0 = CLEARBYTES(s.x0, clen);
+    s.x0 |= c0;
+    s.x0 ^= PAD(clen);
   }
   c += clen;
   printstate("process ciphertext", &s);
 
   /* finalize */
-  s.x[2] ^= K0;
-  s.x[3] ^= K1;
+  s.x2 ^= K0;
+  s.x3 ^= K1;
   P12(&s);
-  s.x[3] ^= K0;
-  s.x[4] ^= K1;
+  s.x3 ^= K0;
+  s.x4 ^= K1;
   printstate("finalization", &s);
 
   /* set tag */
   uint8_t t[16];
-  STOREBYTES(t, s.x[3], 8);
-  STOREBYTES(t + 8, s.x[4], 8);
+  STOREBYTES(t, s.x3, 8);
+  STOREBYTES(t + 8, s.x4, 8);
 
   /* verify tag (should be constant time, check compiler output) */
   int result = 0;

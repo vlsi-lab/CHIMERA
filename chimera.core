@@ -9,15 +9,6 @@ description: Integration framework of chimera in MCU
 
 filesets: 
 
-  ascon_vhdl:
-    files:
-    - hw/ascon/ascon_globals.vhd
-    - hw/ascon/ascon_datapath.vhd
-    - hw/ascon/ascon_round_constants_gen.vhd 
-    - hw/ascon/ascon.vhd
-    - hw/ascon/ascon_round.vhd
-    file_type: vhdlSource    
-
   chimera_x_heep:
     depend:
     - x-heep::packages
@@ -26,10 +17,11 @@ filesets:
     - hw/include/chimera_pkg.sv
     - hw/include/cv32e40px_core_v_xif_pkg.sv
     - hw/include/cv32e40px_pkg.sv
-    - hw/ascon/ascon_cu.sv
-    - hw/rtl/xif_controller.sv
-    - hw/rtl/register_ascon.sv 
-    - hw/rtl/chimera.sv 
+    - hw/include/chimera_pkg.sv
+    - hw/rtl/commit_stage.sv
+    - hw/rtl/id_stage.sv
+    - hw/rtl/rol32.v
+    - hw/rtl/chimera.sv
     - hw/rtl/chimera_top.sv
     - hw/rtl/chimera_wrapper.sv
     - hw/rtl/chimera_x_heep_pkg.sv
@@ -63,7 +55,6 @@ filesets:
    - hw/fpga/xilinx_chimera_x_heep_top.sv  
    - hw/vendor/esl_epfl_x_heep/hw/fpga/sram_wrapper.sv
    file_type: systemVerilogSource
-
 
   tb-harness_x_heep:
     files:
@@ -156,7 +147,7 @@ parameters:
     paramtype: vlogparam
     description: |
       Enables CORE-V-XIF interface for the CV32E40X and CV32E40PX cores. Admitted values: 1|0.
-    default: 1
+    default: 0
   USE_EXTERNAL_DEVICE_EXAMPLE:
     datatype: int
     paramtype: vlogparam
@@ -213,7 +204,6 @@ scripts:
 targets:
   default: &default_target
     filesets:
-    - ascon_vhdl
     - chimera_x_heep
     - x_heep_system
     toplevel: [chimera_x_heep_top]
@@ -303,6 +293,26 @@ targets:
         dc_script:
         - dc_script.tcl
 
+  pynq-z2:
+    <<: *default_target
+    default_tool: vivado
+    description: TUL Pynq-Z2 Board
+    filesets_append:
+    - tb-harness_x_heep
+    - rtl-fpga
+    parameters:
+    - COREV_PULP
+    - FPU
+    - X_EXT
+    - SYNTHESIS=true
+    - REMOVE_OBI_FIFO
+    tools:
+      vivado:
+        part: xc7z020clg400-1
+        board_part: tul.com.tw:pynq-z2:part0:1.0
+        board_repo_paths: [../../../hw/fpga/board_files/vendor/esl_epfl_pynq_z2_board_files]
+    toplevel: [xilinx_chimera_x_heep_top]
+    
   zcu104:
     <<: *default_target
     default_tool: vivado

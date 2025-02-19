@@ -43,17 +43,17 @@ int main() {
         printf("Number of clock cycles for test-1 : %d\n", cycles);
     #endif
     
-   // printf("XOF output is:\n");
-   // for (int i = 0; i < CRYPTO_BYTES; i++) {
-   //     printf("%02X", hash_output[i]);
-   // }
-   // printf("\n");
+    //printf("XOF output is:\n");
+    //for (int i = 0; i < CRYPTO_BYTES; i++) {
+    //    printf("%02X", hash_output[i]);
+    //}
+    //printf("\n");
 //
-   // printf("Golden result is:\n");
-   // for (int i = 0; i < CRYPTO_BYTES; i++) {
-   //     printf("%02X", golden_result[i]);
-   // }
-   // printf("\n");
+    //printf("Golden result is:\n");
+    //for (int i = 0; i < CRYPTO_BYTES; i++) {
+    //    printf("%02X", golden_result[i]);
+    //}
+    //printf("\n");
     
     // Compare with the golden result
     if (memcmp(hash_output, golden_result, CRYPTO_BYTES) == 0) {

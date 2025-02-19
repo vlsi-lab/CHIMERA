@@ -71,16 +71,16 @@ int main() {
         printf("Number of clock cycles for decryption: %d\n", cycles2);
     #endif
 
-   // printf("Original msg: ");
-   // for (int i=0; i<mlen; i++){
-   //     printf("%02X", msg[i]);
-   // }
-   //     printf("\n");
-   // printf("Decrypt msg: ");
-   // for (int i=0; i<mlen; i++){
-   //     printf("%02X", msg2[i]);
-   // }
-   //     printf("\n");
+    //printf("Original msg: ");
+    //for (int i=0; i<mlen; i++){
+    //    printf("%02X", msg[i]);
+    //}
+    //    printf("\n");
+    //printf("Decrypt msg: ");
+    //for (int i=0; i<mlen; i++){
+    //    printf("%02X", msg2[i]);
+    //}
+    //    printf("\n");
     
     if (mlen != mlen2) {
         printf("Crypto_aead_decrypt returned bad 'mlen': Got <%" PRIu32">, expected <%" PRIu32 ">\n", (uint32_t)mlen2, (uint32_t)mlen);

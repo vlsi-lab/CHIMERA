@@ -24,62 +24,62 @@ int crypto_aead_encrypt(unsigned char* c, unsigned long long* clen,
 
   /* initialize */
   state_t s;
-  s.x[0] = ASCON_80PQ_IV | K0;
-  s.x[1] = K1;
-  s.x[2] = K2;
-  s.x[3] = N0;
-  s.x[4] = N1;
+  s.x0 = ASCON_80PQ_IV | K0;
+  s.x1 = K1;
+  s.x2 = K2;
+  s.x3 = N0;
+  s.x4 = N1;
   P12(&s);
-  s.x[2] ^= K0;
-  s.x[3] ^= K1;
-  s.x[4] ^= K2;
+  s.x2 ^= K0;
+  s.x3 ^= K1;
+  s.x4 ^= K2;
   printstate("initialization", &s);
 
   if (adlen) {
     /* full associated data blocks */
     while (adlen >= ASCON_128_RATE) {
-      s.x[0] ^= LOADBYTES(ad, 8);
+      s.x0 ^= LOADBYTES(ad, 8);
       P6(&s);
       ad += ASCON_128_RATE;
       adlen -= ASCON_128_RATE;
     }
     /* final associated data block */
-    s.x[0] ^= LOADBYTES(ad, adlen);
-    s.x[0] ^= PAD(adlen);
+    s.x0 ^= LOADBYTES(ad, adlen);
+    s.x0 ^= PAD(adlen);
     P6(&s);
   }
   /* domain separation */
-  s.x[4] ^= 1;
+  s.x4 ^= 1;
   printstate("process associated data", &s);
 
   /* full plaintext blocks */
   while (mlen >= ASCON_128_RATE) {
-    s.x[0] ^= LOADBYTES(m, 8);
-    STOREBYTES(c, s.x[0], 8);
+    s.x0 ^= LOADBYTES(m, 8);
+    STOREBYTES(c, s.x0, 8);
     P6(&s);
     m += ASCON_128_RATE;
     c += ASCON_128_RATE;
     mlen -= ASCON_128_RATE;
   }
   /* final plaintext block */
-  s.x[0] ^= LOADBYTES(m, mlen);
-  STOREBYTES(c, s.x[0], mlen);
-  s.x[0] ^= PAD(mlen);
+  s.x0 ^= LOADBYTES(m, mlen);
+  STOREBYTES(c, s.x0, mlen);
+  s.x0 ^= PAD(mlen);
   c += mlen;
   printstate("process plaintext", &s);
 
   /* finalize */
-  s.x[1] ^= K0 << 32 | K1 >> 32;
-  s.x[2] ^= K1 << 32 | K2 >> 32;
-  s.x[3] ^= K2 << 32;
+  s.x1 ^= K0 << 32 | K1 >> 32;
+  s.x2 ^= K1 << 32 | K2 >> 32;
+  s.x3 ^= K2 << 32;
   P12(&s);
-  s.x[3] ^= K1;
-  s.x[4] ^= K2;
+  s.x3 ^= K1;
+  s.x4 ^= K2;
   printstate("finalization", &s);
 
   /* set tag */
-  STOREBYTES(c, s.x[3], 8);
-  STOREBYTES(c + 8, s.x[4], 8);
+  STOREBYTES(c, s.x3, 8);
+  STOREBYTES(c + 8, s.x4, 8);
 
   return 0;
 }
