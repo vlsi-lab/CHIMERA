@@ -41,6 +41,6 @@ private/
 *.gds
 
 #other files from main 
-./hw
-./scripts
-./sw
+hw/
+scripts/
+sw/
