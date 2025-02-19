@@ -7,8 +7,6 @@ CHIMERA is evaluated on FPGA and ASIC, comparing CR and BRU versions against sta
 
 ## Branches
 
-- main
-  - 
 - CR
   - High-performance, higher hardware cost.
   - Uses a dedicated 320-bit state register file to minimize memory access.
