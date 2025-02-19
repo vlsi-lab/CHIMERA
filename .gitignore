@@ -39,3 +39,8 @@ private/
 *.lib
 *.lef
 *.gds
+
+#other files from main 
+./hw
+./scripts
+./sw
